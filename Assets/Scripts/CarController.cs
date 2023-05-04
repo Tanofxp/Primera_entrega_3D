@@ -4,16 +4,28 @@ using UnityEditor.SceneTemplate;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
+public enum DriveType
+{
+    FWD,
+    RWD,
+    AWD
+}
+
 public class CarController : MonoBehaviour
 {
+    public DriveType DriveType;
     private Rigidbody carRB;
 
     public WheelColliders colliders;
     public WheelMeshes wheelMeshes;
+    public WheelParticles wheelParticles;
+
+    public GameObject humoPrefab;
+
     public float accInput;
     public float dirInput;
     public float frenoInput;
-
+    
     public float motorHP;
     public float frenoP;
     private float slipAngle;
@@ -26,6 +38,18 @@ public class CarController : MonoBehaviour
     void Start()
     {
         carRB = gameObject.GetComponent<Rigidbody>();
+        InstanciarHumo();
+    }
+    void InstanciarHumo()
+    {
+        wheelParticles.FLWheel = Instantiate(humoPrefab, colliders.FLWheel.transform.position-Vector3.up*colliders.FLWheel.radius, Quaternion.identity, colliders.FLWheel.transform)
+            .GetComponent<ParticleSystem>();
+        wheelParticles.FRWheel = Instantiate(humoPrefab, colliders.FRWheel.transform.position - Vector3.up * colliders.FRWheel.radius, Quaternion.identity, colliders.FRWheel.transform)
+           .GetComponent<ParticleSystem>();
+        wheelParticles.RLWheel = Instantiate(humoPrefab, colliders.RRWheel.transform.position - Vector3.up * colliders.RRWheel.radius, Quaternion.identity, colliders.RRWheel.transform)
+           .GetComponent<ParticleSystem>();
+        wheelParticles.RRWheel = Instantiate(humoPrefab, colliders.RLWheel.transform.position - Vector3.up * colliders.RLWheel.radius, Quaternion.identity, colliders.RLWheel.transform)
+           .GetComponent<ParticleSystem>();
     }
     // Update is called once per frame
     void Update()
@@ -36,8 +60,8 @@ public class CarController : MonoBehaviour
         ApplyDireccion();
         ApplyFreno();
         ApplyWheelPosition();
+        CheckParticles();
     }
-
     void CheckInput()
     {
         accInput = Input.GetAxis("Vertical");
@@ -64,7 +88,6 @@ public class CarController : MonoBehaviour
         {
             frenoInput = Mathf.Abs(accInput);
             
-
         }
         else
         {
@@ -74,8 +97,27 @@ public class CarController : MonoBehaviour
     }
     void ApplyMotor()
     {
-        colliders.RRWheel.motorTorque = motorHP * accInput;
-        colliders.RLWheel.motorTorque = motorHP * accInput;
+        switch (DriveType)
+        {
+            case DriveType.FWD:
+                colliders.FRWheel.motorTorque = motorHP * accInput;
+                colliders.FLWheel.motorTorque = motorHP * accInput;
+                break;
+
+            case DriveType.RWD:
+                colliders.RRWheel.motorTorque = motorHP * accInput;
+                colliders.RLWheel.motorTorque = motorHP * accInput;
+                break;
+
+            case DriveType.AWD:
+                colliders.FRWheel.motorTorque = motorHP * accInput;
+                colliders.FLWheel.motorTorque = motorHP * accInput;
+                colliders.RRWheel.motorTorque = motorHP * accInput;
+                colliders.RLWheel.motorTorque = motorHP * accInput;
+                break;
+
+        };
+        
     }
     void ApplyDireccion()
     {
@@ -98,6 +140,49 @@ public class CarController : MonoBehaviour
         UpdateWheels(colliders.FLWheel, wheelMeshes.FLWheel);
         UpdateWheels(colliders.RRWheel, wheelMeshes.RRWheel);
         UpdateWheels(colliders.RLWheel, wheelMeshes.RLWheel);
+    }
+    void CheckParticles()
+    {
+        WheelHit[] wheelHits = new WheelHit[4];
+        colliders.FRWheel.GetGroundHit(out wheelHits[0]);
+        colliders.FLWheel.GetGroundHit(out wheelHits[1]);
+
+        colliders.RRWheel.GetGroundHit(out wheelHits[2]);
+        colliders.RLWheel.GetGroundHit(out wheelHits[3]);
+
+        float slipAllowance = 0.5f;
+        if ((Mathf.Abs(wheelHits[0].sidewaysSlip) + Mathf.Abs(wheelHits[0].forwardSlip) > slipAllowance))
+        {
+            wheelParticles.FRWheel.Play();
+        }
+        else
+        {
+            wheelParticles.FRWheel.Stop();
+        }
+        if ((Mathf.Abs(wheelHits[1].sidewaysSlip) + Mathf.Abs(wheelHits[1].forwardSlip) > slipAllowance))
+        {
+            wheelParticles.FLWheel.Play();
+        }
+        else
+        {
+            wheelParticles.FLWheel.Stop();
+        }
+        if ((Mathf.Abs(wheelHits[2].sidewaysSlip) + Mathf.Abs(wheelHits[2].forwardSlip) > slipAllowance))
+        {
+            wheelParticles.RRWheel.Play();
+        }
+        else
+        {
+            wheelParticles.RRWheel.Stop();
+        }
+        if ((Mathf.Abs(wheelHits[3].sidewaysSlip) + Mathf.Abs(wheelHits[3].forwardSlip) > slipAllowance))
+        {
+            wheelParticles.RLWheel.Play();
+        }
+        else
+        {
+            wheelParticles.RLWheel.Stop();
+        }
     }
     void UpdateWheels(WheelCollider coll, MeshRenderer wheelMesh)
     {
@@ -125,4 +210,13 @@ public class WheelMeshes
     public MeshRenderer FLWheel;
     public MeshRenderer RLWheel;
     public MeshRenderer RRWheel;
+}
+
+[System.Serializable]
+public class WheelParticles
+{
+    public ParticleSystem FRWheel;
+    public ParticleSystem FLWheel;
+    public ParticleSystem RLWheel;
+    public ParticleSystem RRWheel;
 }
