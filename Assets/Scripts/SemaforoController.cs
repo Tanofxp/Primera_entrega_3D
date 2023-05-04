@@ -24,7 +24,9 @@ public class SemaforoController : MonoBehaviour
         }
         if (m_amarillo.activeSelf == true) {
             StartCoroutine(luzVerde());
+            StartCoroutine(apagar());
         }
+        
     }
     IEnumerator luzRoja()
     {
@@ -37,10 +39,20 @@ public class SemaforoController : MonoBehaviour
     IEnumerator luzVerde()
     {
         yield return new WaitForSeconds(3);
-        m_amarillo.SetActive((false));
+        m_amarillo.SetActive(false);
         m_verde.SetActive(true);
         Debug.Log("1");
         Debug.Log("Go!!!!");
+
+    }
+    IEnumerator apagar()
+    {
+        yield return new WaitForSeconds(3);
+
+        m_verde.SetActive(false);
+        
+        
+
 
     }
 }
