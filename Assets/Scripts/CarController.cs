@@ -18,6 +18,7 @@ public class CarController : MonoBehaviour
     private float slipAngle;
     private float speed;
     public AnimationCurve direccionCurva;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -40,13 +41,14 @@ public class CarController : MonoBehaviour
         dirInput = Input.GetAxis("Horizontal");
         slipAngle = Vector3.Angle(transform.forward, carRB.velocity - transform.forward);
 
-        if (slipAngle < 120f)
+        float movingDirection = Vector3.Dot(transform.forward, carRB.velocity);
+        if (movingDirection < -0.5f && accInput > 0)
         {
-            if (accInput < 0)
-            {
-                frenoInput = Mathf.Abs(accInput);
-                accInput = 0;
-            }
+            frenoInput = Mathf.Abs(accInput);
+        }
+        else if (movingDirection > 0.5f && accInput < 0)
+        {
+            frenoInput = Mathf.Abs(accInput);
         }
         else
         {
@@ -60,17 +62,18 @@ public class CarController : MonoBehaviour
     }
     void ApplyDireccion()
     {
-        float anguloDir = dirInput * direccionCurva.Evaluate(speed);
-        colliders.FRWheel.steerAngle = anguloDir;
-        colliders.FLWheel.steerAngle = anguloDir;
+        float steeringAngle = dirInput * direccionCurva.Evaluate(speed);
+
+        colliders.FRWheel.steerAngle = steeringAngle;
+        colliders.FLWheel.steerAngle = steeringAngle;
     }
     void ApplyFreno()
     {
-        colliders.FRWheel.brakeTorque = frenoInput * frenoP * 0.7f;
-        colliders.FLWheel.brakeTorque = frenoInput * frenoP * 0.7f;
+        colliders.FRWheel.brakeTorque = frenoInput * frenoP * 0.9f;
+        colliders.FLWheel.brakeTorque = frenoInput * frenoP * 0.9f;
 
-        colliders.RRWheel.brakeTorque = frenoInput * frenoP * 0.3f;
-        colliders.RLWheel.brakeTorque = frenoInput * frenoP * 0.3f;
+        colliders.RRWheel.brakeTorque = frenoInput * frenoP * 0.5f;
+        colliders.RLWheel.brakeTorque = frenoInput * frenoP * 0.5f;
     }
     void ApplyWheelPosition()
     {
