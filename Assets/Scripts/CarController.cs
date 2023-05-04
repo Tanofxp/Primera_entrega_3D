@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.SceneTemplate;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -18,6 +19,8 @@ public class CarController : MonoBehaviour
     private float slipAngle;
     private float speed;
     public AnimationCurve direccionCurva;
+    [SerializeField] private GameObject stop_izq;
+    [SerializeField] private GameObject stop_der;
 
     // Start is called before the first frame update
     void Start()
@@ -40,7 +43,18 @@ public class CarController : MonoBehaviour
         accInput = Input.GetAxis("Vertical");
         dirInput = Input.GetAxis("Horizontal");
         slipAngle = Vector3.Angle(transform.forward, carRB.velocity - transform.forward);
-
+        
+        if (accInput >= 0)
+        {
+            stop_izq.SetActive(false);
+            stop_der.SetActive(false);
+        }
+        else
+        {
+            stop_izq.SetActive(true);
+            stop_der.SetActive(true);
+        }
+        
         float movingDirection = Vector3.Dot(transform.forward, carRB.velocity);
         if (movingDirection < -0.5f && accInput > 0)
         {
@@ -49,10 +63,13 @@ public class CarController : MonoBehaviour
         else if (movingDirection > 0.5f && accInput < 0)
         {
             frenoInput = Mathf.Abs(accInput);
+            
+
         }
         else
         {
             frenoInput = 0;
+
         }
     }
     void ApplyMotor()
@@ -91,6 +108,7 @@ public class CarController : MonoBehaviour
         wheelMesh.transform.position = position;
         wheelMesh.transform.rotation = quat;
     }
+
 }
 [System.Serializable]
 public class WheelColliders
