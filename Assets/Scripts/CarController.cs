@@ -6,8 +6,8 @@ using UnityEngine.EventSystems;
 
 public enum DriveType
 {
-    FWD,
     RWD,
+    FWD,
     AWD
 }
 
@@ -28,7 +28,7 @@ public class CarController : MonoBehaviour
     
     public float motorHP;
     public float frenoP;
-    private float slipAngle;
+    public float slipAngle;
     private float speed;
     public AnimationCurve direccionCurva;
     [SerializeField] private GameObject stop_izq;
@@ -122,7 +122,11 @@ public class CarController : MonoBehaviour
     void ApplyDireccion()
     {
         float steeringAngle = dirInput * direccionCurva.Evaluate(speed);
-
+        if (slipAngle < 120f && slipAngle > 2f)
+        {
+            steeringAngle += Vector3.SignedAngle(transform.forward, carRB.velocity + transform.forward, Vector3.up);
+            steeringAngle = Mathf.Clamp(steeringAngle, -90f, 90f);
+        }
         colliders.FRWheel.steerAngle = steeringAngle;
         colliders.FLWheel.steerAngle = steeringAngle;
     }

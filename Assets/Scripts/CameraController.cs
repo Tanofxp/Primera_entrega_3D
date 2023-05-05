@@ -28,8 +28,4 @@ public class CameraController : MonoBehaviour
         }
         
     }
-    private void RearCam()
-    {
-        
-    }
 }
