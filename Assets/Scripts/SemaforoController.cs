@@ -30,29 +30,25 @@ public class SemaforoController : MonoBehaviour
     }
     IEnumerator luzRoja()
     {
+        Debug.Log("2");
         yield return new WaitForSeconds(3);
         m_rojo.SetActive(false);
         m_amarillo.SetActive(true);
-        Debug.Log("2");
 
     }
     IEnumerator luzVerde()
     {
+        Debug.Log("1");
+        Debug.Log("Go!!!!");
         yield return new WaitForSeconds(3);
         m_amarillo.SetActive(false);
         m_verde.SetActive(true);
-        Debug.Log("1");
-        Debug.Log("Go!!!!");
-
+   
     }
     IEnumerator apagar()
     {
-        yield return new WaitForSeconds(3);
+        yield return new WaitForSeconds(6);
 
         m_verde.SetActive(false);
-        
-        
-
-
     }
 }
